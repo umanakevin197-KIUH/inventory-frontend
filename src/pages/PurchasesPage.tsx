@@ -27,6 +27,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 interface Product {
     id: string;
@@ -79,13 +80,11 @@ export default function PurchasesPage() {
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState("todos");
 
-    // Modal crear orden
     const [showModal, setShowModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedPurchase, setSelectedPurchase] = useState<PurchaseOrder | null>(null);
     const [saving, setSaving] = useState(false);
 
-    // Modal crear producto nuevo
     const [showNewProductModal, setShowNewProductModal] = useState(false);
     const [newProductData, setNewProductData] = useState({
         name: "",
@@ -96,7 +95,6 @@ export default function PurchasesPage() {
     });
     const [creatingProduct, setCreatingProduct] = useState(false);
 
-    // Formulario
     const [selectedSupplier, setSelectedSupplier] = useState("");
     const [notes, setNotes] = useState("");
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -105,7 +103,6 @@ export default function PurchasesPage() {
     const [quantity, setQuantity] = useState("");
     const [unitPrice, setUnitPrice] = useState("");
 
-    // ============ CARGAR DATOS ============
     const loadData = useCallback(async () => {
         try {
             const [purchasesData, suppliersData, productsData, categoriesData] = await Promise.all([
@@ -128,25 +125,20 @@ export default function PurchasesPage() {
         loadData();
     }, [loadData]);
 
-    // ============ CARGAR SUBCATEGORÍAS ============
     const loadSubcategoriesForNewProduct = useCallback(async (categoryId: string) => {
-        console.log("🔍 Cargando subcategorías para:", categoryId);
-        
         if (!categoryId) {
             setSubcategories([]);
             return;
         }
         try {
             const data = await getSubcategoriesByCategory(categoryId);
-            console.log("✅ Subcategorías recibidas:", data);
             setSubcategories(data || []);
         } catch (error) {
-            console.error("❌ Error al cargar subcategorías:", error);
+            console.error("Error al cargar subcategorías:", error);
             setSubcategories([]);
         }
     }, []);
 
-    // ============ CREAR PRODUCTO NUEVO ============
     const handleCreateProduct = async () => {
         if (!newProductData.name.trim()) {
             toast.error("Ingrese el nombre del producto");
@@ -170,11 +162,9 @@ export default function PurchasesPage() {
                 stock: 0,
             });
 
-            // Recargar productos
             const productsData = await getProducts();
             setProducts(productsData);
 
-            // Buscar el producto recién creado
             const created = productsData.find((p: Product) => p.name === newProductData.name);
 
             if (created) {
@@ -183,7 +173,6 @@ export default function PurchasesPage() {
                 setUnitPrice(String(created.price || 0));
             }
 
-            // Cerrar modal
             setShowNewProductModal(false);
             setNewProductData({
                 name: "",
@@ -203,7 +192,6 @@ export default function PurchasesPage() {
         }
     };
 
-    // ============ AGREGAR AL CARRITO ============
     const addToCart = () => {
         if (!selectedProduct) {
             toast.error("Seleccione un producto");
@@ -234,17 +222,14 @@ export default function PurchasesPage() {
         toast.success("Producto agregado");
     };
 
-    // ============ ELIMINAR DEL CARRITO ============
     const removeFromCart = (index: number) => {
         setCart(cart.filter((_, i) => i !== index));
     };
 
-    // ============ CALCULAR TOTALES ============
     const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
     const tax = subtotal * 0.15;
     const total = subtotal + tax;
 
-    // ============ GUARDAR COMPRA ============
     const handleSave = async () => {
         if (!selectedSupplier) {
             toast.error("Seleccione un proveedor");
@@ -282,7 +267,6 @@ export default function PurchasesPage() {
         }
     };
 
-    // ============ RECIBIR COMPRA ============
     const handleReceive = async (purchase: PurchaseOrder) => {
         if (!window.confirm(`¿Recibir la orden ${purchase.order_number}? Esto actualizará el stock.`)) return;
         try {
@@ -295,7 +279,6 @@ export default function PurchasesPage() {
         }
     };
 
-    // ============ ELIMINAR ============
     const handleDelete = async (purchase: PurchaseOrder) => {
         if (!window.confirm(`¿Eliminar la orden ${purchase.order_number}?`)) return;
         try {
@@ -308,13 +291,11 @@ export default function PurchasesPage() {
         }
     };
 
-    // ============ VER DETALLE ============
     const openDetail = (purchase: PurchaseOrder) => {
         setSelectedPurchase(purchase);
         setShowDetailModal(true);
     };
 
-    // ============ CERRAR MODAL ============
     const closeModal = () => {
         setShowModal(false);
         setSelectedSupplier("");
@@ -326,7 +307,6 @@ export default function PurchasesPage() {
         setUnitPrice("");
     };
 
-    // ============ FILTRAR ============
     const filteredPurchases = purchases.filter((p) => {
         const matchesSearch =
             p.order_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -335,7 +315,6 @@ export default function PurchasesPage() {
         return matchesSearch && matchesStatus;
     });
 
-    // ============ KPIS ============
     const totalPurchases = purchases.length;
     const pendingPurchases = purchases.filter((p) => p.status === "PENDIENTE").length;
     const receivedPurchases = purchases.filter((p) => p.status === "RECIBIDA").length;
@@ -371,7 +350,7 @@ export default function PurchasesPage() {
         },
         {
             title: "Valor Total",
-            value: `C$ ${totalValue.toFixed(2)}`,
+            value: `C$ ${formatCurrency(totalValue)}`,
             subtitle: "En compras",
             icon: DollarSign,
             color: "purple" as ColorKey,
@@ -436,7 +415,6 @@ export default function PurchasesPage() {
                 transition={{ delay: 0.2 }}
                 className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-3xl p-6 backdrop-blur-xl"
             >
-                {/* Filtros */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-1">
                         {[
@@ -469,7 +447,6 @@ export default function PurchasesPage() {
                     </div>
                 </div>
 
-                {/* Tabla */}
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -517,7 +494,7 @@ export default function PurchasesPage() {
                                                 {purchase.items?.length || 0}
                                             </td>
                                             <td className="py-3.5 text-sm font-bold text-right text-green-400">
-                                                C$ {Number(purchase.total).toFixed(2)}
+                                                C$ {formatCurrency(purchase.total)}
                                             </td>
                                             <td className="py-3.5 text-center">
                                                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -570,7 +547,7 @@ export default function PurchasesPage() {
                 </div>
             </motion.div>
 
-            {/* ============ MODAL CREAR ORDEN ============ */}
+            {/* MODAL CREAR ORDEN */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <motion.div
@@ -592,7 +569,6 @@ export default function PurchasesPage() {
                         </div>
 
                         <div className="space-y-4">
-                            {/* Proveedor y Notas */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5">
@@ -628,7 +604,6 @@ export default function PurchasesPage() {
                                 </div>
                             </div>
 
-                            {/* Agregar producto */}
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                                     <Package className="text-blue-400" size={18} />
@@ -666,7 +641,7 @@ export default function PurchasesPage() {
                                                         >
                                                             <div className="text-sm font-medium">{p.name}</div>
                                                             <div className="text-xs text-white/40">
-                                                                Precio: C$ {Number(p.price).toFixed(2)} • Stock: {p.stock}
+                                                                Precio: C$ {formatCurrency(p.price)} • Stock: {p.stock}
                                                             </div>
                                                         </button>
                                                     ))}
@@ -735,7 +710,6 @@ export default function PurchasesPage() {
                                 </button>
                             </div>
 
-                            {/* Carrito */}
                             {cart.length > 0 && (
                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                                     <h3 className="font-semibold mb-3">
@@ -750,12 +724,12 @@ export default function PurchasesPage() {
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">{item.product_name}</p>
                                                     <p className="text-xs text-white/40">
-                                                        {item.quantity} × C$ {item.unit_price.toFixed(2)}
+                                                        {item.quantity} × C$ {formatCurrency(item.unit_price)}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-sm font-bold text-green-400">
-                                                        C$ {item.total.toFixed(2)}
+                                                        C$ {formatCurrency(item.total)}
                                                     </span>
                                                     <button
                                                         onClick={() => removeFromCart(index)}
@@ -768,25 +742,23 @@ export default function PurchasesPage() {
                                         ))}
                                     </div>
 
-                                    {/* Totales */}
                                     <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-white/40">Subtotal:</span>
-                                            <span>C$ {subtotal.toFixed(2)}</span>
+                                            <span>C$ {formatCurrency(subtotal)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-white/40">IVA (15%):</span>
-                                            <span>C$ {tax.toFixed(2)}</span>
+                                            <span>C$ {formatCurrency(tax)}</span>
                                         </div>
                                         <div className="flex justify-between text-base font-bold pt-2 border-t border-white/10">
                                             <span>Total:</span>
-                                            <span className="text-green-400">C$ {total.toFixed(2)}</span>
+                                            <span className="text-green-400">C$ {formatCurrency(total)}</span>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Botones */}
                             <div className="flex gap-3 pt-4 border-t border-white/5">
                                 <button
                                     onClick={closeModal}
@@ -813,7 +785,7 @@ export default function PurchasesPage() {
                 </div>
             )}
 
-            {/* ============ MODAL CREAR PRODUCTO NUEVO ============ */}
+            {/* MODAL CREAR PRODUCTO NUEVO */}
             {showNewProductModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
                     <motion.div
@@ -852,7 +824,6 @@ export default function PurchasesPage() {
                         </div>
 
                         <div className="space-y-4">
-                            {/* Nombre */}
                             <div>
                                 <label className="text-sm text-white/40 block mb-1.5">
                                     Nombre del Producto *
@@ -867,7 +838,6 @@ export default function PurchasesPage() {
                                 />
                             </div>
 
-                            {/* Descripción */}
                             <div>
                                 <label className="text-sm text-white/40 block mb-1.5">
                                     Descripción
@@ -882,7 +852,6 @@ export default function PurchasesPage() {
                                 />
                             </div>
 
-                            {/* Categoría y Subcategoría */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5">
@@ -897,7 +866,6 @@ export default function PurchasesPage() {
                                                 category_id: catId,
                                                 subcategory_id: "",
                                             });
-                                            // ✅ CARGAR SUBCATEGORÍAS AL CAMBIAR CATEGORÍA
                                             loadSubcategoriesForNewProduct(catId);
                                         }}
                                         className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm focus:outline-none focus:border-blue-500/50"
@@ -936,7 +904,6 @@ export default function PurchasesPage() {
                                                     : "Sin subcategorías"
                                                 : "Seleccione categoría"}
                                         </option>
-                                        {/* ✅ SIN FILTRO - Mostrar todas las subcategorías */}
                                         {subcategories.map((s) => (
                                             <option key={s.id} value={s.id} className="bg-[#1a1a2e]">
                                                 {s.name}
@@ -946,7 +913,6 @@ export default function PurchasesPage() {
                                 </div>
                             </div>
 
-                            {/* Precio - SIN EL 0 MOLESTO */}
                             <div>
                                 <label className="text-sm text-white/40 block mb-1.5">
                                     Precio de Venta
@@ -965,7 +931,6 @@ export default function PurchasesPage() {
                                 />
                             </div>
 
-                            {/* Botones */}
                             <div className="flex gap-3 pt-4 border-t border-white/5">
                                 <button
                                     onClick={() => {
@@ -1002,7 +967,7 @@ export default function PurchasesPage() {
                 </div>
             )}
 
-            {/* ============ MODAL DETALLE ============ */}
+            {/* MODAL DETALLE */}
             {showDetailModal && selectedPurchase && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <motion.div
@@ -1046,7 +1011,6 @@ export default function PurchasesPage() {
                                 </div>
                             </div>
 
-                            {/* Items */}
                             <div>
                                 <h3 className="font-semibold mb-3">Productos</h3>
                                 <div className="space-y-2">
@@ -1058,31 +1022,30 @@ export default function PurchasesPage() {
                                             <div>
                                                 <p className="text-sm font-medium">{item.product_name}</p>
                                                 <p className="text-xs text-white/40">
-                                                    {item.quantity} × C$ {Number(item.unit_price).toFixed(2)}
+                                                    {item.quantity} × C$ {formatCurrency(item.unit_price)}
                                                 </p>
                                             </div>
                                             <span className="font-bold text-green-400">
-                                                C$ {Number(item.total).toFixed(2)}
+                                                C$ {formatCurrency(item.total)}
                                             </span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Totales */}
                             <div className="pt-4 border-t border-white/10 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/40">Subtotal:</span>
-                                    <span>C$ {Number(selectedPurchase.subtotal).toFixed(2)}</span>
+                                    <span>C$ {formatCurrency(selectedPurchase.subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/40">IVA (15%):</span>
-                                    <span>C$ {Number(selectedPurchase.tax).toFixed(2)}</span>
+                                    <span>C$ {formatCurrency(selectedPurchase.tax)}</span>
                                 </div>
                                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
                                     <span>Total:</span>
                                     <span className="text-green-400">
-                                        C$ {Number(selectedPurchase.total).toFixed(2)}
+                                        C$ {formatCurrency(selectedPurchase.total)}
                                     </span>
                                 </div>
                             </div>

@@ -14,6 +14,7 @@ import {
   Users2,
   Brain,
   Zap,
+  CreditCard,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -80,6 +81,12 @@ const menuItems = [
     adminOnly: false,
   },
   {
+    title: "Créditos",
+    icon: CreditCard,
+    path: "/credits",
+    adminOnly: true,
+  },
+  {
     title: "Facturación",
     icon: Receipt,
     path: "/invoices",
@@ -141,16 +148,16 @@ export default function Sidebar() {
     }
   };
 
- // ✅ Acepta ADMIN y ADMINISTRADOR
-const isAdmin = role.toUpperCase() === "ADMIN" || 
-                role.toUpperCase() === "ADMINISTRADOR";
+  // ✅ Acepta ADMIN y ADMINISTRADOR
+  const isAdmin = role.toUpperCase() === "ADMIN" ||
+    role.toUpperCase() === "ADMINISTRADOR";
 
-const filteredItems = menuItems.filter((item) => {
+  const filteredItems = menuItems.filter((item) => {
     if (item.adminOnly && !isAdmin) {
-        return false;
+      return false;
     }
     return true;
-});
+  });
 
   const getUserName = () => {
     if (token) {

@@ -26,6 +26,7 @@ import IntelligencePage from "../pages/IntelligencePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import CreditsPage from "../pages/CreditsPage";
 
 export default function AppRouter() {
     return (
@@ -132,6 +133,15 @@ export default function AppRouter() {
                         element={
                             <RoleGuard allowedRoles={["ADMIN"]}>
                                 <IntelligencePage />
+                            </RoleGuard>
+                        }
+                    />
+
+                    <Route
+                        path="credits"
+                        element={
+                            <RoleGuard allowedRoles={["ADMIN"]}>
+                                <CreditsPage />
                             </RoleGuard>
                         }
                     />

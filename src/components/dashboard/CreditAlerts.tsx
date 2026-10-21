@@ -1,49 +1,57 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Clock, CheckCircle } from "lucide-react";
-import { getPendingCredits, getOverdueCredits, type Sale } from "../../services/saleService";
-import { getCustomers, type Customer } from "../../services/customerService";
+import { getPendingSales, type PendingSale } from "../../services/creditPayments.service";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 export function CreditAlerts() {
-    const [pendingCredits, setPendingCredits] = useState<Sale[]>([]);
-    const [overdueCredits, setOverdueCredits] = useState<Sale[]>([]);
-    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let cancelled = false;
+
+        const loadData = async () => {
+            try {
+                const data = await getPendingSales();
+                if (!cancelled) {
+                    setPendingSales(data);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
         loadData();
-        const interval = setInterval(loadData, 300000);
-        return () => clearInterval(interval);
+
+        // Recargar cada 2 minutos
+        const interval = setInterval(loadData, 120000);
+
+        return () => {
+            cancelled = true;
+            clearInterval(interval);
+        };
     }, []);
 
-    const loadData = async () => {
-        try {
-            const [pending, overdue, customersData] = await Promise.all([
-                getPendingCredits(),
-                getOverdueCredits(),
-                getCustomers(),
-            ]);
-            setPendingCredits(pending);
-            setOverdueCredits(overdue);
-            setCustomers(customersData);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+    const getCustomerName = (sale: PendingSale): string => {
+        if (sale.customer_name) return sale.customer_name;
+        if (sale.customer_name_optional) return sale.customer_name_optional;
+        return "Cliente Genérico";
     };
 
-    const getCustomerName = (id?: string) => {
-        if (!id) return "Cliente Genérico";
-        return customers.find((c) => c.id === id)?.name || "Cliente";
-    };
-
-    const daysUntilDue = (dueDate?: string) => {
-        if (!dueDate) return 0;
+    const daysUntilDue = (dateStr?: string): number | null => {
+        if (!dateStr) return null;
         const today = new Date();
-        const due = new Date(dueDate);
-        const diff = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        return diff;
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(dateStr);
+        target.setHours(0, 0, 0, 0);
+        return Math.ceil(
+            (target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
     };
 
     if (loading) {
@@ -58,7 +66,15 @@ export function CreditAlerts() {
         );
     }
 
-    const totalPending = pendingCredits.reduce((sum, s) => sum + Number(s.total), 0);
+    const totalPending = pendingSales.reduce(
+        (sum, s) => sum + Number(s.balance_due || 0),
+        0
+    );
+
+    const overdueCount = pendingSales.filter((s) => {
+        const days = daysUntilDue(s.next_payment_date);
+        return days !== null && days < 0;
+    }).length;
 
     return (
         <motion.div
@@ -72,7 +88,7 @@ export function CreditAlerts() {
                     Créditos Pendientes
                 </h3>
                 <span className="text-xs text-white/40">
-                    {pendingCredits.length} créditos
+                    {pendingSales.length} {pendingSales.length === 1 ? "crédito" : "créditos"}
                 </span>
             </div>
 
@@ -81,43 +97,57 @@ export function CreditAlerts() {
                 <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                     <p className="text-xs text-yellow-300">Total Pendiente</p>
                     <p className="text-lg font-bold text-yellow-400 mt-1">
-                        C$ {totalPending.toFixed(2)}
+                        C$ {formatCurrency(totalPending)}
                     </p>
                 </div>
-                <div className={`p-3 rounded-xl ${
-                    overdueCredits.length > 0
-                        ? "bg-red-500/10 border border-red-500/20"
-                        : "bg-green-500/10 border border-green-500/20"
-                }`}>
-                    <p className={`text-xs ${
-                        overdueCredits.length > 0 ? "text-red-300" : "text-green-300"
-                    }`}>
-                        {overdueCredits.length > 0 ? "⚠️ Vencidos" : "✅ Sin vencidos"}
+                <div
+                    className={`p-3 rounded-xl ${
+                        overdueCount > 0
+                            ? "bg-red-500/10 border border-red-500/20"
+                            : "bg-green-500/10 border border-green-500/20"
+                    }`}
+                >
+                    <p
+                        className={`text-xs ${
+                            overdueCount > 0
+                                ? "text-red-300"
+                                : "text-green-300"
+                        }`}
+                    >
+                        {overdueCount > 0 ? "⚠️ Vencidos" : "✅ Sin vencidos"}
                     </p>
-                    <p className={`text-lg font-bold mt-1 ${
-                        overdueCredits.length > 0 ? "text-red-400" : "text-green-400"
-                    }`}>
-                        {overdueCredits.length}
+                    <p
+                        className={`text-lg font-bold mt-1 ${
+                            overdueCount > 0
+                                ? "text-red-400"
+                                : "text-green-400"
+                        }`}
+                    >
+                        {overdueCount}
                     </p>
                 </div>
             </div>
 
             {/* Lista de créditos */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
-                {pendingCredits.length === 0 ? (
+                {pendingSales.length === 0 ? (
                     <div className="text-center py-6 text-white/40 text-sm">
-                        <CheckCircle className="mx-auto text-green-400 mb-2" size={24} />
+                        <CheckCircle
+                            className="mx-auto text-green-400 mb-2"
+                            size={24}
+                        />
                         No hay créditos pendientes
                     </div>
                 ) : (
-                    pendingCredits.slice(0, 5).map((credit, index) => {
-                        const days = daysUntilDue(credit.due_date);
-                        const isOverdue = days < 0;
-                        const isNearDue = days >= 0 && days <= 3;
+                    pendingSales.slice(0, 5).map((sale, index) => {
+                        const days = daysUntilDue(sale.next_payment_date);
+                        const isOverdue = days !== null && days < 0;
+                        const isNearDue =
+                            days !== null && days >= 0 && days <= 3;
 
                         return (
                             <motion.div
-                                key={credit.id}
+                                key={sale.id}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.05 }}
@@ -132,24 +162,28 @@ export function CreditAlerts() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                         <p className="text-sm font-medium">
-                                            {getCustomerName(credit.customer_id)}
+                                            {getCustomerName(sale)}
                                         </p>
                                         <p className="text-xs text-white/40">
-                                            {credit.sale_number}
+                                            {sale.sale_number}
                                         </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-bold text-green-400">
-                                            C$ {Number(credit.total).toFixed(2)}
+                                            C$ {formatCurrency(sale.balance_due || 0)}
                                         </p>
-                                        <p className={`text-xs ${
-                                            isOverdue
-                                                ? "text-red-400"
-                                                : isNearDue
-                                                ? "text-yellow-400"
-                                                : "text-white/40"
-                                        }`}>
-                                            {isOverdue
+                                        <p
+                                            className={`text-xs ${
+                                                isOverdue
+                                                    ? "text-red-400"
+                                                    : isNearDue
+                                                    ? "text-yellow-400"
+                                                    : "text-white/40"
+                                            }`}
+                                        >
+                                            {days === null
+                                                ? "Sin fecha"
+                                                : isOverdue
                                                 ? `Vencido hace ${Math.abs(days)} días`
                                                 : days === 0
                                                 ? "Vence HOY"
@@ -163,9 +197,9 @@ export function CreditAlerts() {
                 )}
             </div>
 
-            {pendingCredits.length > 5 && (
+            {pendingSales.length > 5 && (
                 <p className="text-center text-xs text-white/40 mt-3">
-                    +{pendingCredits.length - 5} créditos más
+                    +{pendingSales.length - 5} créditos más
                 </p>
             )}
         </motion.div>

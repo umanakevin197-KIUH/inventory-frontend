@@ -7,6 +7,8 @@ export interface SaleItem {
     product_name?: string;
     quantity: number;
     unit_price: number;
+    original_price?: number;
+    discount?: number;
     total: number;
 }
 
@@ -14,12 +16,19 @@ export interface Sale {
     id: string;
     sale_number: string;
     customer_id?: string;
+    customer_name_optional?: string;
     subtotal: number;
     tax: number;
     total: number;
+    total_paid?: number;
+    balance_due?: number;
     payment_method: string;
     payment_status: string;
+    sale_type?: string;
+    delivery_status?: string;
     due_date?: string;
+    next_payment_date?: string;
+    notification_days_before?: number;
     paid_at?: string;
     status: string;
     created_by?: string;
@@ -32,13 +41,19 @@ export interface SaleItemDto {
     product_name?: string;
     quantity: number;
     unit_price: number;
+    original_price?: number;
+    discount?: number;
 }
 
 export interface CreateSaleDto {
     customer_id?: string;
+    customer_name_optional?: string;
     payment_method: string;
     payment_status?: string;
+    sale_type?: string;
     due_date?: string;
+    next_payment_date?: string;
+    notification_days_before?: number;
     status?: string;
     created_by?: string;
     items: SaleItemDto[];

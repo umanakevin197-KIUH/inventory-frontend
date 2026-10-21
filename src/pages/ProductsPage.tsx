@@ -12,6 +12,7 @@ import {
   X,
   Save
 } from "lucide-react";
+import { formatCurrency } from "../utils/formatCurrency";
 
 // ============ TIPOS ============
 type ColorKey = 'blue' | 'yellow' | 'red';
@@ -328,7 +329,7 @@ export default function ProductsPage() {
                         </span>
                       </td>
                       <td className="py-3.5 text-right font-semibold text-sm">
-                        ${Number(product.price).toFixed(2)}
+                       C$ ${formatCurrency(product.price)}
                       </td>
                       <td className="py-3.5 text-right">
                         <button

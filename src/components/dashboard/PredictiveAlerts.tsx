@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { predictiveService } from '../../services/predictive.service';
 
-
 interface PredictiveAlert {
     productId: string;
     productName: string;
@@ -14,39 +13,40 @@ interface PredictiveAlert {
     urgency: string;
     message: string;
 }
+
 export function PredictiveAlerts() {
     const [alerts, setAlerts] = useState<PredictiveAlert[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-    let cancelled = false;
+        let cancelled = false;
 
-    const loadAlerts = async (): Promise<void> => {
-        try {
-            const data = await predictiveService.getAlerts();
+        const loadAlerts = async (): Promise<void> => {
+            try {
+                const data = await predictiveService.getAlerts();
 
-            if (!cancelled) {
-                setAlerts(data);
-                setLoading(false);
+                if (!cancelled) {
+                    setAlerts(data);
+                    setLoading(false);
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    console.error('Error loading predictive alerts:', error);
+                    setLoading(false);
+                }
             }
-        } catch (error) {
-            if (!cancelled) {
-                console.error('Error loading predictive alerts:', error);
-                setLoading(false);
-            }
-        }
-    };
+        };
 
-    loadAlerts();
+        loadAlerts();
 
-    // Recargar cada 30 segundos
-    const interval = setInterval(loadAlerts, 30000);
+        // Recargar cada 30 segundos
+        const interval = setInterval(loadAlerts, 30000);
 
-    return () => {
-        cancelled = true;
-        clearInterval(interval);
-    };
-}, []);
+        return () => {
+            cancelled = true;
+            clearInterval(interval);
+        };
+    }, []);
 
     const getIcon = (urgency: string) => {
         switch (urgency) {
@@ -95,8 +95,9 @@ export function PredictiveAlerts() {
     }
 
     return (
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-xl flex flex-col h-full min-h-[400px]">
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                     <Zap className="text-yellow-400" size={20} />
                     Alertas Predictivas
@@ -106,7 +107,8 @@ export function PredictiveAlerts() {
                 </span>
             </div>
 
-            <div className="space-y-3">
+            {/* LISTA CON SCROLL ADAPTATIVO */}
+            <div className="space-y-3 overflow-y-auto pr-2 flex-1 max-h-[320px]">
                 {alerts.length === 0 ? (
                     <div className="text-center py-8">
                         <CheckCircle className="mx-auto text-green-400" size={40} />
@@ -119,25 +121,33 @@ export function PredictiveAlerts() {
                             key={alert.productId}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className={`p-4 rounded-xl border ${getColors(alert.urgency)} flex items-start gap-3`}
+                            transition={{ delay: index * 0.05 }}
+                            className={`p-3 rounded-xl border ${getColors(alert.urgency)} flex items-start gap-3`}
                         >
-                            {getIcon(alert.urgency)}
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                    <p className="font-semibold text-sm">{alert.productName}</p>
-                                    <span className={`text-xs px-2 py-1 rounded-full ${
-                                        alert.urgency === 'CRITICAL' 
-                                            ? 'bg-red-500/20 text-red-400' 
-                                            : 'bg-yellow-500/20 text-yellow-400'
-                                    }`}>
+                            <div className="flex-shrink-0 mt-0.5">
+                                {getIcon(alert.urgency)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                    <p className="font-semibold text-sm truncate">
+                                        {alert.productName}
+                                    </p>
+                                    <span
+                                        className={`text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ${
+                                            alert.urgency === 'CRITICAL'
+                                                ? 'bg-red-500/20 text-red-400'
+                                                : 'bg-yellow-500/20 text-yellow-400'
+                                        }`}
+                                    >
                                         {getStatusText(alert.urgency)}
                                     </span>
                                 </div>
-                                <p className="text-sm text-white/60 mt-1">{alert.message}</p>
-                                <div className="flex gap-4 mt-2 text-xs text-white/40">
+                                <p className="text-xs text-white/60 line-clamp-2">
+                                    {alert.message}
+                                </p>
+                                <div className="flex flex-wrap gap-3 mt-2 text-[11px] text-white/40">
                                     <span>Stock: {alert.currentStock}</span>
-                                    <span>Punto reorden: {alert.reorderPoint}</span>
+                                    <span>Reorden: {alert.reorderPoint}</span>
                                     <span className="text-blue-400 cursor-pointer hover:underline">
                                         Ver producto →
                                     </span>

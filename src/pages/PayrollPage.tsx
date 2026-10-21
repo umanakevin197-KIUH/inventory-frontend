@@ -25,6 +25,7 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type ColorKey = 'blue' | 'green' | 'red' | 'yellow' | 'purple';
 
@@ -43,7 +44,6 @@ export default function PayrollPage() {
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // Formulario
     const [formData, setFormData] = useState({
         employee_id: "",
         period: new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }),
@@ -56,7 +56,6 @@ export default function PayrollPage() {
         status: "PAGADA",
     });
 
-    // ============ CARGAR DATOS ============
     const loadData = useCallback(async () => {
         try {
             const [payrollsData, employeesData] = await Promise.all([
@@ -75,7 +74,6 @@ export default function PayrollPage() {
         loadData();
     }, [loadData]);
 
-    // ============ SELECCIONAR EMPLEADO ============
     const handleEmployeeChange = (employeeId: string) => {
         const employee = employees.find((e) => e.id === employeeId);
         setFormData({
@@ -85,13 +83,11 @@ export default function PayrollPage() {
         });
     };
 
-    // ============ CÁLCULO DE SALARIO NETO ============
     const netSalary =
         Number(formData.base_salary) +
         Number(formData.bonuses) -
         Number(formData.deductions);
 
-    // ============ GUARDAR ============
     const handleSave = async () => {
         if (!formData.employee_id) {
             toast.error("Seleccione un empleado");
@@ -132,7 +128,6 @@ export default function PayrollPage() {
         }
     };
 
-    // ============ ELIMINAR ============
     const handleDelete = async (payroll: Payroll) => {
         if (!window.confirm(`¿Eliminar el registro de planilla de ${payroll.employee_name}?`)) return;
         try {
@@ -145,7 +140,6 @@ export default function PayrollPage() {
         }
     };
 
-    // ============ CERRAR MODAL ============
     const closeModal = () => {
         setShowModal(false);
         setFormData({
@@ -161,17 +155,14 @@ export default function PayrollPage() {
         });
     };
 
-    // ============ GENERAR PDF DE COMPROBANTE ============
     const generatePDF = (payroll: Payroll) => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const fecha = new Date(payroll.created_at);
 
-        // Franja superior
         doc.setFillColor(37, 99, 235);
         doc.rect(0, 0, pageWidth, 8, "F");
 
-        // Logo
         doc.setFillColor(37, 99, 235);
         doc.roundedRect(14, 15, 24, 24, 3, 3, "F");
         doc.setTextColor(255, 255, 255);
@@ -179,7 +170,6 @@ export default function PayrollPage() {
         doc.setFont("helvetica", "bold");
         doc.text("J", 22, 32);
 
-        // Nombre negocio
         doc.setTextColor(30, 30, 30);
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
@@ -191,7 +181,6 @@ export default function PayrollPage() {
         doc.text("RUC: 001-150390-1001A  |  Tel: 8888-1234", 44, 28);
         doc.text("Nandaime, Granada, Mercado Municipal Nandaime", 44, 34);
 
-        // Recuadro título
         doc.setFillColor(37, 99, 235);
         doc.roundedRect(pageWidth - 75, 15, 61, 24, 2, 2, "F");
         doc.setTextColor(255, 255, 255);
@@ -204,12 +193,10 @@ export default function PayrollPage() {
         doc.setFont("helvetica", "normal");
         doc.text(fecha.toLocaleDateString('es-ES'), pageWidth - 44.5, 34, { align: "center" });
 
-        // Línea divisoria
         doc.setDrawColor(37, 99, 235);
         doc.setLineWidth(1);
         doc.line(14, 45, pageWidth - 14, 45);
 
-        // Datos del empleado
         doc.setFillColor(245, 247, 250);
         doc.roundedRect(14, 52, pageWidth - 28, 30, 2, 2, "F");
         doc.setFillColor(37, 99, 235);
@@ -227,19 +214,18 @@ export default function PayrollPage() {
         doc.text(`Cargo: ${payroll.employee_position || "—"}`, 20, 72);
         doc.text(`Período: ${payroll.period}`, 20, 78);
 
-        // Detalle de pago
         autoTable(doc, {
             startY: 92,
             head: [["CONCEPTO", "MONTO"]],
             body: [
-                ["Salario Base", `C$ ${Number(payroll.base_salary).toFixed(2)}`],
+                ["Salario Base", `C$ ${formatCurrency(payroll.base_salary)}`],
                 [
                     `Bonos${payroll.bonus_description ? ` (${payroll.bonus_description})` : ""}`,
-                    `+ C$ ${Number(payroll.bonuses).toFixed(2)}`,
+                    `+ C$ ${formatCurrency(payroll.bonuses)}`,
                 ],
                 [
                     `Deducciones${payroll.deduction_description ? ` (${payroll.deduction_description})` : ""}`,
-                    `- C$ ${Number(payroll.deductions).toFixed(2)}`,
+                    `- C$ ${formatCurrency(payroll.deductions)}`,
                 ],
             ],
             theme: "grid",
@@ -260,7 +246,6 @@ export default function PayrollPage() {
             margin: { left: 14, right: 14 },
         });
 
-        // Total Neto
         const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 150;
 
         doc.setFillColor(37, 99, 235);
@@ -271,18 +256,16 @@ export default function PayrollPage() {
         doc.setFont("helvetica", "bold");
         doc.text("SALARIO NETO A PAGAR:", 20, finalY + 20);
         doc.text(
-            `C$ ${Number(payroll.net_salary).toFixed(2)}`,
+            `C$ ${formatCurrency(payroll.net_salary)}`,
             pageWidth - 20, finalY + 20, { align: "right" }
         );
 
-        // Método de pago
         doc.setTextColor(60, 60, 60);
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
         doc.text(`Método de pago: ${payroll.payment_method}`, 14, finalY + 36);
         doc.text(`Estado: ${payroll.status === "PAGADA" ? "✅ Pagada" : "⏳ Pendiente"}`, 14, finalY + 42);
 
-        // Footer
         const footerY = 270;
         doc.setDrawColor(200, 200, 200);
         doc.setLineWidth(0.3);
@@ -301,7 +284,6 @@ export default function PayrollPage() {
         doc.save(`Planilla_${payroll.employee_name}_${payroll.period}.pdf`);
     };
 
-    // ============ FILTRAR ============
     const filteredPayrolls = payrolls.filter((p) => {
         const employee = employees.find((e) => e.id === p.employee_id);
         return (
@@ -311,7 +293,6 @@ export default function PayrollPage() {
         );
     });
 
-    // ============ KPIS ============
     const totalPayrolls = payrolls.length;
     const totalPaid = payrolls
         .filter((p) => p.status === "PAGADA")
@@ -336,7 +317,7 @@ export default function PayrollPage() {
         },
         {
             title: "Total Pagado",
-            value: `C$ ${totalPaid.toFixed(2)}`,
+            value: `C$ ${formatCurrency(totalPaid)}`,
             subtitle: "Salarios pagados",
             icon: TrendingUp,
             color: "green" as ColorKey,
@@ -345,7 +326,7 @@ export default function PayrollPage() {
         },
         {
             title: "Pendiente",
-            value: `C$ ${totalPending.toFixed(2)}`,
+            value: `C$ ${formatCurrency(totalPending)}`,
             subtitle: "Por pagar",
             icon: TrendingDown,
             color: "yellow" as ColorKey,
@@ -354,7 +335,7 @@ export default function PayrollPage() {
         },
         {
             title: "Nómina del Mes",
-            value: `C$ ${monthPayroll.toFixed(2)}`,
+            value: `C$ ${formatCurrency(monthPayroll)}`,
             subtitle: currentMonth,
             icon: DollarSign,
             color: "purple" as ColorKey,
@@ -365,7 +346,6 @@ export default function PayrollPage() {
 
     return (
         <div className="space-y-6">
-            {/* HEADER */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -385,7 +365,6 @@ export default function PayrollPage() {
                 </button>
             </div>
 
-            {/* KPIS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {kpis.map((kpi, index) => {
                     const colors = colorClasses[kpi.color];
@@ -412,7 +391,6 @@ export default function PayrollPage() {
                 })}
             </div>
 
-            {/* TABLA */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -476,16 +454,16 @@ export default function PayrollPage() {
                                             {payroll.period}
                                         </td>
                                         <td className="py-3.5 text-sm text-right">
-                                            C$ {Number(payroll.base_salary).toFixed(2)}
+                                            C$ {formatCurrency(payroll.base_salary)}
                                         </td>
                                         <td className="py-3.5 text-sm text-right text-green-400">
-                                            + C$ {Number(payroll.bonuses).toFixed(2)}
+                                            + C$ {formatCurrency(payroll.bonuses)}
                                         </td>
                                         <td className="py-3.5 text-sm text-right text-red-400">
-                                            - C$ {Number(payroll.deductions).toFixed(2)}
+                                            - C$ {formatCurrency(payroll.deductions)}
                                         </td>
                                         <td className="py-3.5 text-sm font-bold text-right text-green-400">
-                                            C$ {Number(payroll.net_salary).toFixed(2)}
+                                            C$ {formatCurrency(payroll.net_salary)}
                                         </td>
                                         <td className="py-3.5 text-center">
                                             <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -522,7 +500,6 @@ export default function PayrollPage() {
                 </div>
             </motion.div>
 
-            {/* MODAL NUEVA PLANILLA */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <motion.div
@@ -544,7 +521,6 @@ export default function PayrollPage() {
                         </div>
 
                         <div className="space-y-4">
-                            {/* Empleado */}
                             <div>
                                 <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                     <UserCircle size={14} />
@@ -562,13 +538,12 @@ export default function PayrollPage() {
                                         .filter((e) => e.status)
                                         .map((e) => (
                                             <option key={e.id} value={e.id} className="bg-[#1a1a2e]">
-                                                {e.name} - {e.position} - C$ {Number(e.salary).toFixed(2)}
+                                                {e.name} - {e.position} - C$ {formatCurrency(e.salary)}
                                             </option>
                                         ))}
                                 </select>
                             </div>
 
-                            {/* Período */}
                             <div>
                                 <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                     <Calendar size={14} />
@@ -585,7 +560,6 @@ export default function PayrollPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Salario Base */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5">
                                         Salario Base
@@ -601,7 +575,6 @@ export default function PayrollPage() {
                                     />
                                 </div>
 
-                                {/* Método de pago */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5">
                                         Método de Pago
@@ -618,7 +591,6 @@ export default function PayrollPage() {
                                     </select>
                                 </div>
 
-                                {/* Bonos */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 text-green-400">
                                         Bonos (opcional)
@@ -634,7 +606,6 @@ export default function PayrollPage() {
                                     />
                                 </div>
 
-                                {/* Descripción bonos */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 text-green-400">
                                         Descripción del Bono
@@ -649,7 +620,6 @@ export default function PayrollPage() {
                                     />
                                 </div>
 
-                                {/* Deducciones */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 text-red-400">
                                         Deducciones (opcional)
@@ -665,7 +635,6 @@ export default function PayrollPage() {
                                     />
                                 </div>
 
-                                {/* Descripción deducciones */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 text-red-400">
                                         Descripción de la Deducción
@@ -681,7 +650,6 @@ export default function PayrollPage() {
                                 </div>
                             </div>
 
-                            {/* Resumen de pago */}
                             <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-2xl p-5">
                                 <p className="text-xs text-blue-300 uppercase tracking-wider mb-3">
                                     Resumen del Pago
@@ -690,31 +658,30 @@ export default function PayrollPage() {
                                     <div className="flex justify-between text-sm">
                                         <span className="text-white/50">Salario Base:</span>
                                         <span className="font-semibold">
-                                            C$ {Number(formData.base_salary).toFixed(2)}
+                                            C$ {formatCurrency(formData.base_salary)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm text-green-400">
                                         <span>+ Bonos:</span>
                                         <span className="font-semibold">
-                                            C$ {Number(formData.bonuses).toFixed(2)}
+                                            C$ {formatCurrency(formData.bonuses)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-sm text-red-400">
                                         <span>- Deducciones:</span>
                                         <span className="font-semibold">
-                                            C$ {Number(formData.deductions).toFixed(2)}
+                                            C$ {formatCurrency(formData.deductions)}
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-lg font-bold pt-3 border-t border-blue-500/30">
                                         <span>NETO A PAGAR:</span>
                                         <span className="text-green-400">
-                                            C$ {netSalary.toFixed(2)}
+                                            C$ {formatCurrency(netSalary)}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Estado */}
                             <div>
                                 <label className="text-sm text-white/40 block mb-1.5">Estado del Pago</label>
                                 <div className="grid grid-cols-2 gap-3">
@@ -743,7 +710,6 @@ export default function PayrollPage() {
                                 </div>
                             </div>
 
-                            {/* Botones */}
                             <div className="flex gap-3 pt-4 border-t border-white/5">
                                 <button
                                     onClick={closeModal}

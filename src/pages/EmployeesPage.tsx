@@ -24,6 +24,7 @@ import {
     UserCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type ColorKey = 'blue' | 'green' | 'purple';
 
@@ -53,7 +54,6 @@ export default function EmployeesPage() {
 
     const [formData, setFormData] = useState(initialForm);
 
-    // ============ CARGAR EMPLEADOS ============
     const loadEmployees = useCallback(async () => {
         try {
             const data = await getEmployees();
@@ -68,7 +68,6 @@ export default function EmployeesPage() {
         loadEmployees();
     }, [loadEmployees]);
 
-    // ============ GUARDAR ============
     const handleSave = async () => {
         if (!formData.name.trim()) {
             toast.error("Ingrese el nombre del empleado");
@@ -102,7 +101,6 @@ export default function EmployeesPage() {
         }
     };
 
-    // ============ ELIMINAR ============
     const handleDelete = async (employee: Employee) => {
         if (!window.confirm(`¿Eliminar al empleado "${employee.name}"?`)) return;
         try {
@@ -115,7 +113,6 @@ export default function EmployeesPage() {
         }
     };
 
-    // ============ ABRIR EDITAR ============
     const openEdit = (employee: Employee) => {
         setEditingEmployee(employee);
         setFormData({
@@ -131,14 +128,12 @@ export default function EmployeesPage() {
         setShowModal(true);
     };
 
-    // ============ CERRAR MODAL ============
     const closeModal = () => {
         setShowModal(false);
         setEditingEmployee(null);
         setFormData(initialForm);
     };
 
-    // ============ FILTRAR ============
     const filteredEmployees = employees.filter(
         (e) =>
             e.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -146,7 +141,6 @@ export default function EmployeesPage() {
             e.email?.toLowerCase().includes(search.toLowerCase())
     );
 
-    // ============ KPIS ============
     const totalEmployees = employees.length;
     const activeEmployees = employees.filter((e) => e.status).length;
     const totalPayroll = employees
@@ -174,7 +168,7 @@ export default function EmployeesPage() {
         },
         {
             title: "Nómina Mensual",
-            value: `C$ ${totalPayroll.toFixed(2)}`,
+            value: `C$ ${formatCurrency(totalPayroll)}`,
             subtitle: "Total de salarios base",
             icon: DollarSign,
             color: "purple" as ColorKey,
@@ -298,7 +292,7 @@ export default function EmployeesPage() {
                                             <div className="text-xs text-white/40">{employee.email || "—"}</div>
                                         </td>
                                         <td className="py-3.5 text-sm font-bold text-right text-green-400">
-                                            C$ {Number(employee.salary).toFixed(2)}
+                                            C$ {formatCurrency(employee.salary)}
                                         </td>
                                         <td className="py-3.5 text-center">
                                             <span
@@ -358,7 +352,6 @@ export default function EmployeesPage() {
 
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Nombre */}
                                 <div className="md:col-span-2">
                                     <label className="text-sm text-white/40 block mb-1.5">
                                         Nombre Completo *
@@ -373,7 +366,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Cargo */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                         <Briefcase size={14} />
@@ -389,7 +381,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Salario */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                         <DollarSign size={14} />
@@ -406,7 +397,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Fecha de ingreso */}
                                 <div className="md:col-span-2">
                                     <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                         <Calendar size={14} />
@@ -422,7 +412,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Teléfono */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                         <Phone size={14} />
@@ -438,7 +427,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Email */}
                                 <div>
                                     <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                         <Mail size={14} />
@@ -454,7 +442,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Dirección */}
                                 <div className="md:col-span-2">
                                     <label className="text-sm text-white/40 block mb-1.5 flex items-center gap-2">
                                         <MapPin size={14} />
@@ -470,7 +457,6 @@ export default function EmployeesPage() {
                                     />
                                 </div>
 
-                                {/* Estado */}
                                 <div className="md:col-span-2">
                                     <label className="text-sm text-white/40 block mb-1.5">Estado</label>
                                     <div className="grid grid-cols-2 gap-3">

@@ -33,6 +33,7 @@ import {
   Cell,
 } from "recharts";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 interface Product {
   id: string;
@@ -208,7 +209,7 @@ export default function ReportsPage() {
     doc.text(`Valor Inventario:`, 100, 70);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(22, 163, 74);
-    doc.text(`C$ ${totalInventoryValue.toFixed(2)}`, 135, 70);
+    doc.text(`C$ ${formatCurrency(totalInventoryValue)}`, 135, 70);
 
     doc.setTextColor(40, 40, 40);
     doc.setFont("helvetica", "normal");
@@ -237,8 +238,8 @@ export default function ReportsPage() {
         i + 1,
         p.name,
         p.stock,
-        `C$ ${Number(p.price).toFixed(2)}`,
-        `C$ ${(Number(p.price) * p.stock).toFixed(2)}`,
+        `C$ ${formatCurrency(p.price)}`,
+        `C$ ${formatCurrency(Number(p.price) * p.stock)}`,
       ]),
       theme: "grid",
       headStyles: {
@@ -265,7 +266,7 @@ export default function ReportsPage() {
       body: expensiveProducts.map((p, i) => [
         i + 1,
         p.name,
-        `C$ ${Number(p.price).toFixed(2)}`,
+        `C$ ${formatCurrency(p.price)}`,
         p.stock,
       ]),
       theme: "grid",
@@ -421,7 +422,7 @@ export default function ReportsPage() {
   const kpis = [
     {
       title: "Valor del Inventario",
-      value: `C$ ${totalInventoryValue.toFixed(2)}`,
+      value: `C$ ${formatCurrency(totalInventoryValue)}`,
       subtitle: "Valor total en stock",
       icon: DollarSign,
       color: "green" as ColorKey,
@@ -468,7 +469,7 @@ export default function ReportsPage() {
     },
     {
       title: "Producto Más Caro",
-      value: `C$ ${Number(expensiveProducts[0]?.price || 0).toFixed(2)}`,
+      value: `C$ ${formatCurrency(expensiveProducts[0]?.price || 0)}`,
       subtitle: expensiveProducts[0]?.name || "Sin productos",
       icon: Award,
       color: "pink" as ColorKey,
@@ -743,10 +744,10 @@ export default function ReportsPage() {
                     <td className="py-3 text-sm font-medium">{product.name}</td>
                     <td className="py-3 text-sm text-center">{product.stock}</td>
                     <td className="py-3 text-sm text-right font-bold text-green-400">
-                      C$ {Number(product.price).toFixed(2)}
+                      C$ ${formatCurrency(product.price)}
                     </td>
                     <td className="py-3 text-sm text-right font-semibold">
-                      C$ {(Number(product.price) * product.stock).toFixed(2)}
+                      C$ ${formatCurrency(Number(product.price) * product.stock)}
                     </td>
                   </motion.tr>
                 ))
@@ -802,7 +803,7 @@ export default function ReportsPage() {
                       {product.stock}
                     </td>
                     <td className="py-3 text-sm text-right">
-                      C$ {Number(product.price).toFixed(2)}
+                     C$ ${formatCurrency(product.price)}
                     </td>
                     <td className="py-3 text-right">
                       <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/20">

@@ -20,6 +20,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { predictiveService, type DashboardMetrics } from '../services/predictive.service';
 import { PredictiveAlerts } from '../components/dashboard/PredictiveAlerts';
 import { CreditAlerts } from '../components/dashboard/CreditAlerts';
+import { formatCurrency } from "../utils/formatCurrency";
 
 interface Product {
     id: string;
@@ -199,7 +200,7 @@ export default function DashboardPage() {
             },
             {
                 title: 'Valor Inventario',
-                value: `$${predictiveMetrics?.totalInventoryValue?.toFixed(2) || '0.00'}`,
+                value: `$${formatCurrency(predictiveMetrics?.totalInventoryValue || 0)}`,
                 subtitle: `${categories.length} categorías`,
                 icon: DollarSign,
                 color: 'green',
@@ -210,7 +211,7 @@ export default function DashboardPage() {
             },
             {
                 title: 'Predicción Ventas (30d)',
-                value: `$${predictiveMetrics?.predictedSalesNextMonth?.toFixed(2) || '0.00'}`,
+                value: `$${formatCurrency(predictiveMetrics?.predictedSalesNextMonth || 0)}`,
                 subtitle: 'Basado en historial',
                 icon: TrendingUp,
                 color: 'purple',
@@ -516,7 +517,7 @@ export default function DashboardPage() {
                         </h3>
                         <span className="text-xs text-white/40">{lowStockProducts.length} productos</span>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto max-h-[400px] overflow-y-auto pr-2">
                         {lowStockProducts.length === 0 ? (
                             <div className="flex items-center justify-center py-8 text-white/40 gap-2">
                                 <CheckCircle size={20} className="text-green-400" />
@@ -533,7 +534,7 @@ export default function DashboardPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {lowStockProducts.slice(0, 5).map((product, index) => {
+                                    {lowStockProducts.map((product, index) => {
                                         const stock = Number(product.stock);
                                         const isOutOfStock = stock === 0;
 
@@ -549,7 +550,7 @@ export default function DashboardPage() {
                                                 <td className={`py-3 text-sm font-bold text-center ${isOutOfStock ? 'text-red-400' : 'text-yellow-400'}`}>
                                                     {stock}
                                                 </td>
-                                                <td className="py-3 text-sm text-right">${product.price}</td>
+                                                <td className="py-3 text-sm text-right">${formatCurrency(product.price)}</td>
                                                 <td className="py-3 text-right">
                                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${isOutOfStock
                                                             ? 'bg-red-500/20 text-red-400'
@@ -617,7 +618,7 @@ export default function DashboardPage() {
                                             <td className="py-3 text-sm font-medium">{product.name}</td>
                                             <td className="py-3 text-sm text-center">{product.stock}</td>
                                             <td className="py-3 text-sm font-bold text-right text-green-400">
-                                                ${product.price}
+                                            ${formatCurrency(product.price)}
                                             </td>
                                         </motion.tr>
                                     ))}

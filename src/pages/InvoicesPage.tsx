@@ -24,6 +24,7 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type ColorKey = 'blue' | 'green' | 'red' | 'yellow' | 'purple';
 
@@ -158,7 +159,6 @@ export default function InvoicesPage() {
         doc.rect(0, 0, pageWidth, 8, "F");
 
         // ============ HEADER - LOGO Y DATOS DEL NEGOCIO ============
-        // Logo con inicial
         doc.setFillColor(37, 99, 235);
         doc.roundedRect(14, 15, 24, 24, 3, 3, "F");
 
@@ -167,13 +167,11 @@ export default function InvoicesPage() {
         doc.setFont("helvetica", "bold");
         doc.text("J", 22, 32);
 
-        // Nombre del negocio
         doc.setTextColor(30, 30, 30);
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
         doc.text("JESÚS ES MI PASTOR", 44, 22);
 
-        // Datos del negocio
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(90, 90, 90);
@@ -209,7 +207,6 @@ export default function InvoicesPage() {
         doc.setFillColor(245, 247, 250);
         doc.roundedRect(14, 50, pageWidth - 28, 24, 2, 2, "F");
 
-        // Barra lateral azul
         doc.setFillColor(37, 99, 235);
         doc.rect(14, 50, 3, 24, "F");
 
@@ -223,12 +220,10 @@ export default function InvoicesPage() {
         doc.setFontSize(9);
         doc.text(`Nombre: ${customer?.name || "Cliente Genérico"}`, 20, 63);
 
-        // RUC
         if (customer?.ruc) {
             doc.text(`RUC: ${customer.ruc}`, 20, 69);
         }
 
-        // Teléfono y dirección a la derecha
         if (customer?.phone) {
             doc.text(`Teléfono: ${customer.phone}`, 110, 63);
         }
@@ -250,8 +245,8 @@ export default function InvoicesPage() {
                     String(index + 1).padStart(3, "0"),
                     item.product_name || "—",
                     item.quantity.toString(),
-                    `C$ ${Number(item.unit_price).toFixed(2)}`,
-                    `C$ ${Number(item.total).toFixed(2)}`,
+                    `C$ ${formatCurrency(item.unit_price)}`,
+                    `C$ ${formatCurrency(item.total)}`,
                 ]),
                 theme: "plain",
                 headStyles: {
@@ -286,7 +281,6 @@ export default function InvoicesPage() {
         const totalsX = pageWidth - 80;
         const totalsY = finalY + 8;
 
-        // Caja de totales
         doc.setFillColor(245, 247, 250);
         doc.roundedRect(totalsX, totalsY, 66, 36, 2, 2, "F");
         doc.setDrawColor(37, 99, 235);
@@ -299,35 +293,32 @@ export default function InvoicesPage() {
 
         doc.text("SUBTOTAL:", totalsX + 4, totalsY + 9);
         doc.text(
-            `C$ ${Number(invoice.subtotal).toFixed(2)}`,
+            `C$ ${formatCurrency(invoice.subtotal)}`,
             totalsX + 62, totalsY + 9, { align: "right" }
         );
 
         doc.text("IVA (15%):", totalsX + 4, totalsY + 17);
         doc.text(
-            `C$ ${Number(invoice.tax).toFixed(2)}`,
+            `C$ ${formatCurrency(invoice.tax)}`,
             totalsX + 62, totalsY + 17, { align: "right" }
         );
 
-        // Línea separadora
         doc.setDrawColor(37, 99, 235);
         doc.setLineWidth(0.5);
         doc.line(totalsX + 4, totalsY + 22, totalsX + 62, totalsY + 22);
 
-        // TOTAL destacado
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(37, 99, 235);
         doc.text("TOTAL:", totalsX + 4, totalsY + 31);
         doc.text(
-            `C$ ${Number(invoice.total).toFixed(2)}`,
+            `C$ ${formatCurrency(invoice.total)}`,
             totalsX + 62, totalsY + 31, { align: "right" }
         );
 
         // ============ INFORMACIÓN ADICIONAL ============
         let infoY = totalsY + 45;
 
-        // Método de pago
         if (sale?.payment_method) {
             doc.setFillColor(248, 250, 252);
             doc.roundedRect(14, infoY - 5, 100, 12, 2, 2, "F");
@@ -350,7 +341,6 @@ export default function InvoicesPage() {
             infoY += 12;
         }
 
-        // Observaciones
         if (invoice.notes && invoice.status !== "ANULADA") {
             doc.setTextColor(100, 100, 100);
             doc.setFontSize(8);
@@ -387,12 +377,10 @@ export default function InvoicesPage() {
         // ============ FOOTER ============
         const footerY = 265;
 
-        // Línea divisoria
         doc.setDrawColor(200, 200, 200);
         doc.setLineWidth(0.3);
         doc.line(14, footerY, pageWidth - 14, footerY);
 
-        // Código de barras simulado
         doc.setFont("courier", "bold");
         doc.setFontSize(13);
         doc.setTextColor(40, 40, 40);
@@ -400,7 +388,6 @@ export default function InvoicesPage() {
             align: "center",
         });
 
-        // Agradecimiento
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(37, 99, 235);
@@ -408,7 +395,6 @@ export default function InvoicesPage() {
             align: "center",
         });
 
-        // Info legal
         doc.setFont("helvetica", "normal");
         doc.setFontSize(7);
         doc.setTextColor(130, 130, 130);
@@ -421,11 +407,9 @@ export default function InvoicesPage() {
             pageWidth / 2, footerY + 29, { align: "center" }
         );
 
-        // ============ FRANJA INFERIOR ============
         doc.setFillColor(37, 99, 235);
         doc.rect(0, 297, pageWidth, 3, "F");
 
-        // Guardar
         doc.save(`${invoice.invoice_number}.pdf`);
     };
 
@@ -475,7 +459,7 @@ export default function InvoicesPage() {
         },
         {
             title: "Facturado",
-            value: `C$ ${totalBilled.toFixed(2)}`,
+            value: `C$ ${formatCurrency(totalBilled)}`,
             subtitle: "Total facturado",
             icon: DollarSign,
             color: "green" as ColorKey,
@@ -637,7 +621,7 @@ export default function InvoicesPage() {
                                                 </span>
                                             </td>
                                             <td className="py-3.5 text-sm font-bold text-right text-green-400">
-                                                C$ {(Number(invoice.total) || 0).toFixed(2)}
+                                                C$ {formatCurrency(invoice.total)}
                                             </td>
                                             <td className="py-3.5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
@@ -712,7 +696,7 @@ export default function InvoicesPage() {
                                         const customer = customers.find((c) => c.id === sale.customer_id);
                                         return (
                                             <option key={sale.id} value={sale.id} className="bg-[#1a1a2e]">
-                                                {sale.sale_number} - {customer?.name || "Cliente Genérico"} - C$ {Number(sale.total).toFixed(2)}
+                                                {sale.sale_number} - {customer?.name || sale.customer_name_optional || "Cliente Genérico"} - C$ {formatCurrency(sale.total)}
                                             </option>
                                         );
                                     })}
@@ -835,16 +819,16 @@ export default function InvoicesPage() {
                             <div className="pt-4 border-t border-white/10 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/40">Subtotal:</span>
-                                    <span>C$ {(Number(selectedInvoice.subtotal) || 0).toFixed(2)}</span>
+                                    <span>C$ {formatCurrency(selectedInvoice.subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/40">IVA (15%):</span>
-                                    <span>C$ {(Number(selectedInvoice.tax) || 0).toFixed(2)}</span>
+                                    <span>C$ {formatCurrency(selectedInvoice.tax)}</span>
                                 </div>
                                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
                                     <span>Total:</span>
                                     <span className="text-green-400">
-                                        C$ {(Number(selectedInvoice.total) || 0).toFixed(2)}
+                                        C$ {formatCurrency(selectedInvoice.total)}
                                     </span>
                                 </div>
                             </div>

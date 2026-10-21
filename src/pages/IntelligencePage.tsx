@@ -19,6 +19,7 @@ import {
     Target,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type TabKey = 'abc' | 'eoq' | 'profitability';
 
@@ -33,7 +34,6 @@ export default function IntelligencePage() {
     try {
         setLoading(true);
         
-        // ✅ Cargar SECUENCIALMENTE (una a la vez)
         console.log("⏳ Cargando ABC...");
         const abc = await getABCAnalysis();
         setAbcData(abc);
@@ -63,7 +63,6 @@ export default function IntelligencePage() {
         loadData();
     }, [loadData]);
 
-    // ============ KPIS GENERALES ============
     const totalProducts = abcData.length;
     const categoryACount = abcData.filter((a) => a.category === 'A').length;
     const categoryBCount = abcData.filter((a) => a.category === 'B').length;
@@ -94,7 +93,6 @@ export default function IntelligencePage() {
 
     return (
         <div className="space-y-6">
-            {/* HEADER */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -107,7 +105,6 @@ export default function IntelligencePage() {
                 </div>
             </div>
 
-            {/* KPIS PRINCIPALES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -135,7 +132,7 @@ export default function IntelligencePage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-white/50 text-sm">Ganancia Total</p>
-                            <h2 className="text-2xl font-bold mt-1">C$ {totalProfit.toFixed(2)}</h2>
+                            <h2 className="text-2xl font-bold mt-1">C$ {formatCurrency(totalProfit)}</h2>
                             <p className="text-xs text-white/40 mt-1">Margen acumulado</p>
                         </div>
                         <div className="p-3 rounded-2xl bg-green-500/20">
@@ -183,7 +180,6 @@ export default function IntelligencePage() {
                 </motion.div>
             </div>
 
-            {/* TABS */}
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-1">
                 {tabs.map((tab) => (
                     <button
@@ -204,7 +200,6 @@ export default function IntelligencePage() {
                 ))}
             </div>
 
-            {/* TAB CONTENT - ABC */}
             {activeTab === 'abc' && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -273,9 +268,9 @@ export default function IntelligencePage() {
                                             </td>
                                             <td className="py-3 text-sm font-medium">{item.productName}</td>
                                             <td className="py-3 text-sm text-center">{item.stock}</td>
-                                            <td className="py-3 text-sm text-right">C$ {item.price.toFixed(2)}</td>
+                                            <td className="py-3 text-sm text-right">C$ {formatCurrency(item.price)}</td>
                                             <td className="py-3 text-sm text-right font-semibold">
-                                                C$ {item.value.toFixed(2)}
+                                                C$ {formatCurrency(item.value)}
                                             </td>
                                             <td className="py-3 text-sm text-right text-white/60">
                                                 {item.percentage.toFixed(2)}%
@@ -295,7 +290,6 @@ export default function IntelligencePage() {
                 </motion.div>
             )}
 
-            {/* TAB CONTENT - EOQ */}
             {activeTab === 'eoq' && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -371,7 +365,6 @@ export default function IntelligencePage() {
                 </motion.div>
             )}
 
-            {/* TAB CONTENT - RENTABILIDAD */}
             {activeTab === 'profitability' && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -425,12 +418,12 @@ export default function IntelligencePage() {
                                             </td>
                                             <td className="py-3 text-sm font-medium">{item.productName}</td>
                                             <td className="py-3 text-sm text-white/60">{item.category}</td>
-                                            <td className="py-3 text-sm text-right">C$ {item.price.toFixed(2)}</td>
+                                            <td className="py-3 text-sm text-right">C$ {formatCurrency(item.price)}</td>
                                             <td className="py-3 text-sm text-right text-white/60">
-                                                C$ {item.estimatedCost.toFixed(2)}
+                                                C$ {formatCurrency(item.estimatedCost)}
                                             </td>
                                             <td className="py-3 text-sm text-right font-semibold text-green-400">
-                                                C$ {item.margin.toFixed(2)}
+                                                C$ {formatCurrency(item.margin)}
                                             </td>
                                             <td className="py-3 text-sm text-right">
                                                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -442,7 +435,7 @@ export default function IntelligencePage() {
                                                 </span>
                                             </td>
                                             <td className="py-3 text-sm text-right font-bold text-green-400">
-                                                C$ {item.totalProfit.toFixed(2)}
+                                                C$ {formatCurrency(item.totalProfit)}
                                             </td>
                                         </motion.tr>
                                     ))}
