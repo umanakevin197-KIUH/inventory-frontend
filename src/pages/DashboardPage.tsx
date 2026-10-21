@@ -200,7 +200,7 @@ export default function DashboardPage() {
             },
             {
                 title: 'Valor Inventario',
-                value: `$${formatCurrency(predictiveMetrics?.totalInventoryValue || 0)}`,
+                value: `C$ ${formatCurrency(predictiveMetrics?.totalInventoryValue || 0)}`,
                 subtitle: `${categories.length} categorías`,
                 icon: DollarSign,
                 color: 'green',
@@ -211,7 +211,7 @@ export default function DashboardPage() {
             },
             {
                 title: 'Predicción Ventas (30d)',
-                value: `$${formatCurrency(predictiveMetrics?.predictedSalesNextMonth || 0)}`,
+                value: `C$ ${formatCurrency(predictiveMetrics?.predictedSalesNextMonth || 0)}`,
                 subtitle: 'Basado en historial',
                 icon: TrendingUp,
                 color: 'purple',
@@ -550,7 +550,7 @@ export default function DashboardPage() {
                                                 <td className={`py-3 text-sm font-bold text-center ${isOutOfStock ? 'text-red-400' : 'text-yellow-400'}`}>
                                                     {stock}
                                                 </td>
-                                                <td className="py-3 text-sm text-right">${formatCurrency(product.price)}</td>
+                                                <td className="py-3 text-sm text-right">C${formatCurrency(product.price)}</td>
                                                 <td className="py-3 text-right">
                                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${isOutOfStock
                                                             ? 'bg-red-500/20 text-red-400'
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                                             <td className="py-3 text-sm font-medium">{product.name}</td>
                                             <td className="py-3 text-sm text-center">{product.stock}</td>
                                             <td className="py-3 text-sm font-bold text-right text-green-400">
-                                            ${formatCurrency(product.price)}
+                                            C${formatCurrency(product.price)}
                                             </td>
                                         </motion.tr>
                                     ))}

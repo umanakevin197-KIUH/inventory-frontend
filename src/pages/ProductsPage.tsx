@@ -329,7 +329,7 @@ export default function ProductsPage() {
                         </span>
                       </td>
                       <td className="py-3.5 text-right font-semibold text-sm">
-                       C$ ${formatCurrency(product.price)}
+                       C$ {formatCurrency(product.price)}
                       </td>
                       <td className="py-3.5 text-right">
                         <button
