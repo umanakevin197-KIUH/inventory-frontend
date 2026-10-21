@@ -277,7 +277,7 @@ export default function SalesPage() {
     const handleRegisterPayment = async (sale: Sale) => {
         if (
             !window.confirm(
-                `¿Confirmar el pago de la venta ${sale.sale_number} por C$ ${formatCurrency(overdueCredits.reduce((sum, s) => sum + Number(s.total), 0))}{Number(sale.total).toFixed(2)}?`
+                `¿Confirmar el pago de la venta ${sale.sale_number} por C$ ${formatCurrency(sale.total)}?`
             )
         ) return;
         try {
@@ -445,7 +445,7 @@ export default function SalesPage() {
                             ⚠️ Tienes {overdueCredits.length} créditos VENCIDOS
                         </p>
                         <p className="text-sm text-white/60 mt-1">
-                            Total vencido: C$ {overdueCredits.reduce((sum, s) => sum + Number(s.total), 0).toFixed(2)}
+                            Total vencido: C$ {formatCurrency(overdueCredits.reduce((sum, s) => sum + Number(s.total), 0))}
                         </p>
                     </div>
                 </motion.div>
@@ -757,7 +757,7 @@ export default function SalesPage() {
                                                             >
                                                                 <div className="text-sm font-medium">{p.name}</div>
                                                                 <div className="text-xs text-white/40">
-                                                                    C$ {(Number(p.price) || 0).toFixed(2)} • Stock: {p.stock}
+                                                                    C$ {formatCurrency(p.price)} • Stock: {p.stock}
                                                                 </div>
                                                             </button>
                                                         ))}
@@ -769,7 +769,7 @@ export default function SalesPage() {
                                             <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20">
                                                 <p className="text-sm font-medium">{selectedProduct.name}</p>
                                                 <p className="text-xs text-white/50">
-                                                    Precio: C$ {(Number(selectedProduct.price) || 0).toFixed(2)} •
+                                                    Precio: C$ {formatCurrency(selectedProduct.price)} •
                                                     Stock: {selectedProduct.stock}
                                                 </p>
                                             </div>
@@ -931,18 +931,17 @@ export default function SalesPage() {
                                                                     {item.product_name}
                                                                 </p>
                                                                 <p className="text-xs text-white/40">
-                                                                    {item.quantity} × C${" "}
-                                                                    {Number(item.unit_price).toFixed(2)}
+                                                                    {item.quantity} × C$ {formatCurrency(item.unit_price)}
                                                                     {hasDiscount && (
                                                                         <span className="line-through text-red-400 ml-2">
-                                                                            C$ {Number(item.original_price).toFixed(2)}
+                                                                            C$ {formatCurrency(item.original_price)}
                                                                         </span>
                                                                     )}
                                                                 </p>
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-sm font-bold text-green-400">
-                                                                    C$ ${formatCurrency(item.total)}
+                                                                    C$ {formatCurrency(item.total)}
                                                                 </span>
                                                                 <button
                                                                     onClick={() => removeFromCart(index)}
@@ -970,7 +969,7 @@ export default function SalesPage() {
                                                             />
                                                             {hasDiscount && (
                                                                 <span className="text-xs text-yellow-400 font-semibold">
-                                                                    -C$ ${formatCurrency(discountAmount)}
+                                                                    -C$ {formatCurrency(discountAmount)}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -983,15 +982,15 @@ export default function SalesPage() {
                                     <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-white/40">Subtotal:</span>
-                                            <span> C$ ${formatCurrency(subtotal)}</span>
+                                            <span>C$ {formatCurrency(subtotal)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-white/40">IVA (15%):</span>
-                                            <span>C$ ${formatCurrency(tax)}</span>
+                                            <span>C$ {formatCurrency(tax)}</span>
                                         </div>
                                         <div className="flex justify-between text-xl font-bold pt-2 border-t border-white/10">
                                             <span>Total:</span>
-                                            <span className="text-green-400">C$ ${formatCurrency(total)}</span>
+                                            <span className="text-green-400">C$ {formatCurrency(total)}</span>
                                         </div>
                                     </div>
 
@@ -1012,19 +1011,19 @@ export default function SalesPage() {
                                                 {saleType === "NORMAL" && (
                                                     <>
                                                         <Banknote size={22} />
-                                                        Cobrar C$ {total.toFixed(2)}
+                                                        Cobrar C$ {formatCurrency(total)}
                                                     </>
                                                 )}
                                                 {saleType === "APARTADO" && (
                                                     <>
                                                         <PackageCheck size={22} />
-                                                        Apartar C$ {total.toFixed(2)}
+                                                        Apartar C$ {formatCurrency(total)}
                                                     </>
                                                 )}
                                                 {saleType === "CREDITO" && (
                                                     <>
                                                         <Clock size={22} />
-                                                        Registrar Crédito C$ {total.toFixed(2)}
+                                                        Registrar Crédito C$ {formatCurrency(total)}
                                                     </>
                                                 )}
                                             </>
@@ -1142,11 +1141,11 @@ export default function SalesPage() {
                                                 <div>
                                                     <p className="text-sm font-medium">{item.product_name}</p>
                                                     <p className="text-xs text-white/40">
-                                                        {item.quantity} × C$ ${formatCurrency(item.unit_price)}
+                                                        {item.quantity} × C$ {formatCurrency(item.unit_price)}
                                                         {hasDiscount && (
                                                             <>
                                                                 <span className="line-through text-red-400 ml-2">
-                                                                    C$ ${formatCurrency(item.original_price || 0)}
+                                                                    C$ {formatCurrency(item.original_price || 0)}
                                                                 </span>
                                                                 <span className="text-yellow-400 ml-1">(rebaja)</span>
                                                             </>
@@ -1154,7 +1153,7 @@ export default function SalesPage() {
                                                     </p>
                                                 </div>
                                                 <span className="font-bold text-green-400">
-                                                    C$ {(Number(item.total) || 0).toFixed(2)}
+                                                    C$ {formatCurrency(item.total)}
                                                 </span>
                                             </div>
                                         );
@@ -1165,15 +1164,15 @@ export default function SalesPage() {
                             <div className="pt-4 border-t border-white/10 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/40">Subtotal:</span>
-                                    <span>C$ {(Number(selectedSale.subtotal) || 0).toFixed(2)}</span>
+                                    <span>C$ {formatCurrency(selectedSale.subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-white/40">IVA (15%):</span>
-                                    <span>C$ {(Number(selectedSale.tax) || 0).toFixed(2)}</span>
+                                    <span>C$ {formatCurrency(selectedSale.tax)}</span>
                                 </div>
                                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
                                     <span>Total:</span>
-                                    <span className="text-green-400">C$ {(Number(selectedSale.total) || 0).toFixed(2)}</span>
+                                    <span className="text-green-400">C$ {formatCurrency(selectedSale.total)}</span>
                                 </div>
                             </div>
                         </div>
