@@ -71,16 +71,9 @@ export default function PaymentModal({
 
         const numericAmount = parseFloat(amount);
 
+        // Solo validamos que sea un número mayor a 0
         if (isNaN(numericAmount) || numericAmount <= 0) {
-            toast.error("Ingresa un monto válido");
-            return;
-        }
-
-        const balanceDue = Number(sale.balance_due);
-        if (numericAmount > balanceDue) {
-            toast.error(
-                `El abono no puede superar el saldo pendiente (C$ ${balanceDue.toFixed(2)})`
-            );
+            toast.error("Ingresa un monto válido mayor a 0");
             return;
         }
 
@@ -252,11 +245,8 @@ export default function PaymentModal({
                                         type="number"
                                         step="0.01"
                                         min="0.01"
-                                        max={balance}
-                                        value={amount}
-                                        onChange={(e) =>
-                                            setAmount(e.target.value)
-                                        }
+                                        value={amount === "0" || amount === "0.00" ? "" : amount}
+                                        onChange={(e) => setAmount(e.target.value)}
                                         required
                                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-green-500/50 transition-all"
                                         placeholder="0.00"
