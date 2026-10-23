@@ -332,20 +332,20 @@ export default function CustomersPage() {
                                     onChange={(e) =>
                                         setFormData({ ...formData, name: e.target.value })
                                     }
-                                    placeholder="Nombre completo o empresa"
+                                    placeholder="Nombre completo"
                                     className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm focus:outline-none focus:border-blue-500/50"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-sm text-white/40 block mb-1.5">RUC</label>
+                                    <label className="text-sm text-white/40 block mb-1.5">Cédula / Identificación</label>
                                     <input
                                         value={formData.ruc}
                                         onChange={(e) =>
                                             setFormData({ ...formData, ruc: e.target.value })
                                         }
-                                        placeholder="Número de RUC"
+                                        placeholder="Ej: 001-150390-1001A"
                                         className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm focus:outline-none focus:border-blue-500/50"
                                     />
                                 </div>
