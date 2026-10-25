@@ -154,8 +154,20 @@ export default function InvoicesPage() {
         const pageWidth = doc.internal.pageSize.getWidth();
         const fecha = new Date(invoice.created_at);
 
-        // ============ FRANJA SUPERIOR AZUL ============
-        doc.setFillColor(37, 99, 235);
+        // ✅ DEFINIR COLORES Y TÍTULOS SEGÚN EL TIPO
+        let title = "FACTURA";
+        let headerColor: [number, number, number] = [37, 99, 235]; // Azul
+
+        if (invoice.type === "BOLETA") {
+            title = "BOLETA DE VENTA";
+            headerColor = [22, 163, 74]; // Verde
+        } else if (invoice.type === "NOTA_CREDITO") {
+            title = "NOTA DE CRÉDITO";
+            headerColor = [220, 38, 38]; // Rojo
+        }
+
+        // ============ FRANJA SUPERIOR DINÁMICA ============
+        doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
         doc.rect(0, 0, pageWidth, 8, "F");
 
         // ============ HEADER - LOGO Y DATOS DEL NEGOCIO ============
@@ -181,13 +193,13 @@ export default function InvoicesPage() {
 
         // ============ RECUADRO DEL TIPO DE DOCUMENTO ============
         const docBoxX = pageWidth - 75;
-        doc.setFillColor(37, 99, 235);
+        doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]); // Color dinámico
         doc.roundedRect(docBoxX, 15, 61, 24, 2, 2, "F");
 
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.text(invoice.type || "FACTURA", docBoxX + 30.5, 23, { align: "center" });
+        doc.text(title, docBoxX + 30.5, 23, { align: "center" });
 
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
@@ -199,7 +211,7 @@ export default function InvoicesPage() {
         );
 
         // ============ LÍNEA DIVISORIA ============
-        doc.setDrawColor(37, 99, 235);
+        doc.setDrawColor(headerColor[0], headerColor[1], headerColor[2]);
         doc.setLineWidth(1);
         doc.line(14, 45, pageWidth - 14, 45);
 
@@ -250,7 +262,7 @@ export default function InvoicesPage() {
                 ]),
                 theme: "plain",
                 headStyles: {
-                    fillColor: [37, 99, 235],
+                    fillColor: headerColor,
                     textColor: [255, 255, 255],
                     fontSize: 9,
                     fontStyle: "bold",
@@ -309,7 +321,7 @@ export default function InvoicesPage() {
 
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(37, 99, 235);
+        doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]);
         doc.text("TOTAL:", totalsX + 4, totalsY + 31);
         doc.text(
             `C$ ${formatCurrency(invoice.total)}`,
@@ -388,10 +400,13 @@ export default function InvoicesPage() {
             align: "center",
         });
 
+        // Agradecimiento
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
-        doc.setTextColor(37, 99, 235);
-        doc.text("¡GRACIAS POR SU COMPRA!", pageWidth / 2, footerY + 18, {
+        doc.setTextColor(headerColor[0], headerColor[1], headerColor[2]); // Color dinámico
+        doc.text(
+            invoice.type === "NOTA_CREDITO" ? "COMPROBANTE DE DEVOLUCIÓN" : "¡GRACIAS POR SU COMPRA!",
+            pageWidth / 2, footerY + 18, {
             align: "center",
         });
 
@@ -545,8 +560,8 @@ export default function InvoicesPage() {
                                 key={option.value}
                                 onClick={() => setFilterStatus(option.value)}
                                 className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${filterStatus === option.value
-                                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/20"
-                                        : "text-white/40 hover:text-white hover:bg-white/5"
+                                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/20"
+                                    : "text-white/40 hover:text-white hover:bg-white/5"
                                     }`}
                             >
                                 {option.label}
@@ -614,8 +629,8 @@ export default function InvoicesPage() {
                                             </td>
                                             <td className="py-3.5 text-center">
                                                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${isCancelled
-                                                        ? "bg-red-500/20 text-red-400 border border-red-500/20"
-                                                        : "bg-green-500/20 text-green-400 border border-green-500/20"
+                                                    ? "bg-red-500/20 text-red-400 border border-red-500/20"
+                                                    : "bg-green-500/20 text-green-400 border border-green-500/20"
                                                     }`}>
                                                     {isCancelled ? "❌ Anulada" : "✅ Emitida"}
                                                 </span>
@@ -720,8 +735,8 @@ export default function InvoicesPage() {
                                             type="button"
                                             onClick={() => setInvoiceType(type)}
                                             className={`py-3 rounded-xl font-medium text-xs transition-all ${invoiceType === type
-                                                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/20"
-                                                    : "bg-white/5 text-white/40 hover:bg-white/10 border border-white/10"
+                                                ? "bg-blue-500/20 text-blue-400 border border-blue-500/20"
+                                                : "bg-white/5 text-white/40 hover:bg-white/10 border border-white/10"
                                                 }`}
                                         >
                                             {type === "FACTURA" ? "📄 Factura" :
